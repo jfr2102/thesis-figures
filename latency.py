@@ -5,11 +5,13 @@ from datetime import timedelta
 from matplotlib import pyplot
 import seaborn as sns
 import matplotlib.dates as mdates
+from load_meta import *
+from input import *
 date_fmt = mdates.DateFormatter('%H:%M:%S')
 path="/home/jfr/Thesis/kafka-logs/"
 
 # input: ##########################
-run="2021-11-15_19-05-12_delay_50"
+#run="2021-11-15_22-32-10_delay_200"
 #fault_begin = "2021-11-10-17:40:46"
 #failure_duration_minutes = 7
 #failure_duration_seconds = 0
@@ -50,7 +52,7 @@ latency_partition=[latency_per_partition.get_group(x) for x in latency_per_parti
 for partition in latency_partition:
     partition_num = str(partition.iloc[0][" partition"] + 1)
     #print(partition)
-    sns.lineplot(x=" record.timestamp", y=" latency", data = partition, label = "partition " + partition_num, legend=False, marker="o")
+    sns.lineplot(x=" record.timestamp", y=" latency", data = partition, label = "partition " + partition_num, legend=False)
     #marker="o"
     
 # plot using rolling average
@@ -62,39 +64,15 @@ for partition in latency_partition:
 
 axes.xaxis.set_major_formatter(date_fmt)
 axes.legend(loc=5)
-#input: 
-# todo: load benchmark and check_begin from produceroutput.csv file?
-producerlog = pd.read_csv(producerfilename, sep=";")
-benchmark_begin_loaded = (producerlog.loc[lambda df: df['note'] == "benchmark",:])['timestamp'].iloc[0]
-
-#@TODO
-testdriverinfo = pd.read_csv(testdriverfilename, sep=";")
-fault_begin_loaded = testdriverinfo["failure_start"].iloc[0]
-fault_end_loaded = testdriverinfo["failure_end"].iloc[0]
-
-#calc 
-timepattern = "%Y-%m-%d-%H-%M-%S"
-fault_begin = datetime.strptime(fault_begin_loaded, timepattern) - timedelta(hours = 1)
-fault_end = datetime.strptime(fault_end_loaded, timepattern) - timedelta(hours = 1)
-#fault_begin = datetime.strptime(fault_begin, "%Y-%m-%d-%H:%M:%S")- timedelta(hours=1)
-#fault_end =  fault_begin + timedelta(minutes = failure_duration_minutes, seconds=failure_duration_seconds)
-start_benchmark = pd.to_datetime(benchmark_begin_loaded, unit='ms').to_pydatetime()
-
-
-
-#annotate
-pyplot.axvline(x=fault_begin, color='r', linestyle=':')
-pyplot.axvline(x=fault_end, color='r', linestyle=':')
-pyplot.axvline(x=start_benchmark, color="g", linestyle = "-")
-
+annotate()
 #min, ymax = pyplot.ylim()
 #arrowprops = {'width': 1, 'headwidth': 1, 'headlength': 1, 'shrink':0.05 }
 #pyplot.annotate('BigNews1', xy=(benchmark_begin_loaded, ymax))
 #pyplot.tight_layout()
 trans = axes.get_xaxis_transform()
-pyplot.text(start_benchmark, 0.95, 't_0', transform=trans, ha="right", color="g")
-pyplot.text(fault_begin, 0.95, 't_1', transform=trans, ha="right", color = "r")
-pyplot.text(fault_end, 0.95, 't_2', transform=trans, ha="right", color = "r")
+# pyplot.text(start_benchmark, 0.95, 't_0', transform=trans, ha="right", color="g")
+# pyplot.text(fault_begin, 0.95, 't_1', transform=trans, ha="right", color = "r")
+# pyplot.text(fault_end, 0.95, 't_2', transform=trans, ha="right", color = "r")
 
 pyplot.savefig(run + ".pdf")
 #sns.lineplot(x=" record.timestamp", y=" latency", data = latency, hue= " partition", marker="o")

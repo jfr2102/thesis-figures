@@ -1,9 +1,9 @@
 import pandas as pd
 from datetime import datetime
 from datetime import timedelta
+from matplotlib import pyplot
+from input import *
 
-path="/home/jfr/Thesis/kafka-logs/"
-run="2021-11-15_19-05-12_delay_50"
 filename= path + run + "/resultsoutput.csv"
 producerfilename = path + run + "/produceroutput.csv"
 testdriverfilename = path + run + "/testdriverinfo.txt"
@@ -11,6 +11,8 @@ testdriverfilename = path + run + "/testdriverinfo.txt"
 # todo: load benchmark and check_begin from produceroutput.csv file?
 producerlog = pd.read_csv(producerfilename, sep=";")
 benchmark_begin_loaded = (producerlog.loc[lambda df: df['note'] == "benchmark",:])['timestamp'].iloc[0]
+check_begin_loaded = (producerlog.loc[lambda df: df['note'] == "check",:])['timestamp'].iloc[0]
+
 
 #@TODO
 testdriverinfo = pd.read_csv(testdriverfilename, sep=";")
@@ -24,3 +26,8 @@ fault_end = datetime.strptime(fault_end_loaded, timepattern) - timedelta(hours =
 #fault_begin = datetime.strptime(fault_begin, "%Y-%m-%d-%H:%M:%S")- timedelta(hours=1)
 #fault_end =  fault_begin + timedelta(minutes = failure_duration_minutes, seconds=failure_duration_seconds)
 start_benchmark = pd.to_datetime(benchmark_begin_loaded, unit='ms').to_pydatetime()
+start_check = pd.to_datetime(check_begin_loaded, unit='ms').to_pydatetime()
+def annotate():
+    pyplot.axvline(x=fault_begin, color='r', linestyle=':')
+    pyplot.axvline(x=fault_end, color='r', linestyle=':')
+    pyplot.axvline(x=start_benchmark, color="g", linestyle = "-")
