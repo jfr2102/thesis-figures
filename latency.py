@@ -9,7 +9,7 @@ date_fmt = mdates.DateFormatter('%H:%M:%S')
 path="/home/jfr/Thesis/kafka-logs/"
 
 # input: ##########################
-run="2021-11-11_11-52-11_delay_20"
+run="2021-11-15_19-05-12_delay_50"
 #fault_begin = "2021-11-10-17:40:46"
 #failure_duration_minutes = 7
 #failure_duration_seconds = 0
@@ -18,7 +18,7 @@ run="2021-11-11_11-52-11_delay_20"
 filename= path + run + "/resultsoutput.csv"
 producerfilename = path + run + "/produceroutput.csv"
 testdriverfilename = path + run + "/testdriverinfo.txt"
-fig, axes = pyplot.subplots( figsize = ( 15, 5))
+fig, axes = pyplot.subplots( figsize = ( 10, 5))
 df = pd.read_csv(filename, sep=";",parse_dates=True, infer_datetime_format=True)
 
 latency = df[[" record.timestamp", " latency", " partition", "note"]]
@@ -92,10 +92,11 @@ pyplot.axvline(x=start_benchmark, color="g", linestyle = "-")
 #pyplot.annotate('BigNews1', xy=(benchmark_begin_loaded, ymax))
 #pyplot.tight_layout()
 trans = axes.get_xaxis_transform()
-#pyplot.text(start_benchmark, 0.95, 'Failure benchmark begin', transform=trans, ha="center", color="g")
-#pyplot.text(fault_begin, 0.95, 'Failure Inection', transform=trans, ha="center", color = "r")
-#pyplot.text(fault_end, 0.95, 'Failure End', transform=trans, ha="center", color = "r")
+pyplot.text(start_benchmark, 0.95, 't_0', transform=trans, ha="right", color="g")
+pyplot.text(fault_begin, 0.95, 't_1', transform=trans, ha="right", color = "r")
+pyplot.text(fault_end, 0.95, 't_2', transform=trans, ha="right", color = "r")
 
 pyplot.savefig(run + ".pdf")
 #sns.lineplot(x=" record.timestamp", y=" latency", data = latency, hue= " partition", marker="o")
 pyplot.show()
+
