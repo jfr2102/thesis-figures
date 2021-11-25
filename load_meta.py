@@ -27,6 +27,7 @@ fault_end = datetime.strptime(fault_end_loaded, timepattern) - timedelta(hours =
 #fault_end =  fault_begin + timedelta(minutes = failure_duration_minutes, seconds=failure_duration_seconds)
 start_benchmark = pd.to_datetime(benchmark_begin_loaded, unit='ms').to_pydatetime()
 start_check = pd.to_datetime(check_begin_loaded, unit='ms').to_pydatetime()
+
 def annotate():
     pyplot.axvline(x=fault_begin, color='r', linestyle=':')
     pyplot.axvline(x=fault_end, color='r', linestyle=':')
