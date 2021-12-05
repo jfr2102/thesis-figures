@@ -32,18 +32,25 @@ from input import *
 #         "2021-12-02_01-25-16_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_grob_3", "2021-12-02_11-19-37_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_grob_4"]
 
 # 6 emitter 10 ms localgropuping granular:
-# runs = ["2021-12-02_12-08-48_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_1",
-#         "2021-12-02_12-58-00_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_2",
-#         "2021-12-02_13-47-08_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_3",
-#         "2021-12-02_22-42-32_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_4"]
+runs = ["2021-12-02_12-08-48_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_1",
+         "2021-12-02_12-58-00_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_2",
+         "2021-12-02_13-47-08_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_3",
+         "2021-12-02_22-42-32_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_4"]
+
+# 6 emitter 10 ms, localgrouping rerun granular:
+runs = runs + ["2021-12-04_19-54-41_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_1",
+"2021-12-04_21-23-25_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_3",
+"2021-12-04_22-07-35_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_4",
+"2021-12-04_23-04-28_throughput_sustainable_6_emitter_10ms_sleep_local_shuffle_granular_2_rerun"]
+
 
 # 6 emitter 25 ms localgropuping grob:
 # runs = ["2021-12-02_15-55-58_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_grob_1", "2021-12-02_16-44-57_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_grob_2",
 #        "2021-12-02_17-34-07_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_grob_3", "2021-12-02_18-23-15_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_grob_4"]
 
 # 6 emitter 25 ms localgropuping granular:
-runs = ["2021-12-02_19-12-23_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_granular_1", "2021-12-02_20-01-30_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_granular_2",
-        "2021-12-02_20-50-45_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_granular_3", "2021-12-02_21-39-44_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_granular_4"]
+# runs = ["2021-12-02_19-12-23_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_granular_1", "2021-12-02_20-01-30_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_granular_2",
+#         "2021-12-02_20-50-45_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_granular_3", "2021-12-02_21-39-44_throughput_sustainable_6_emitter_25ms_sleep_local_shuffle_granular_4"]
 
 
 def annotate_interval():
@@ -57,7 +64,7 @@ def set_ticks(ax, x_ticks, tick_labels):
     ax.set_xticks(x_ticks)
     ax.set_xticklabels(tick_labels)
     ax.set_xlim(x_ticks[0] - timedelta(seconds=30),
-                end_ticks[-1] + timedelta(seconds=500))
+                end_ticks[-1] + timedelta(seconds=30))
 
 
 def printTable(df):
@@ -131,7 +138,8 @@ for run in runs:
         begin_group = note_group.iloc[0][" record.timestamp"]
         end_group = note_group.iloc[-1][" record.timestamp"]
         x_ticks.append(begin_group)
-        end_ticks.append(end_group)
+        # +10 seconds for the previously ommited last 2 windows
+        end_ticks.append(end_group + timedelta(seconds = 10))
         tick_labels.append("t_" + str(n))
         end_group = note_group.iloc[-1][" record.timestamp"]
         count_group = note_group[" window_size"].sum()
@@ -185,12 +193,15 @@ for run in runs:
     annotate_interval()
 
     pyplot.subplot(313)
+
     ax_cpu = sns.lineplot(x="time", y="value_1",
                           data=cpu_util, label="Storm 1")
     ax_cpu.yaxis.set_major_formatter(
         mtick.FuncFormatter(lambda y, _: '{:.0%}'.format(y)))
+   
     ax_cpu.set_ylabel("CPU Utilization")
     ax_cpu.get_xaxis().set_major_formatter(date_fmt)
+ 
     set_ticks(ax_cpu, x_ticks, tick_labels)
 
     sns.lineplot(x="time", y="value_2", data=cpu_util, label="Storm 2")
@@ -198,7 +209,7 @@ for run in runs:
     sns.lineplot(x="time", y="value_3", data=cpu_util, label="Kafka")
     sns.lineplot(x="time", y="value_4", data=cpu_util, label="Utilities")
     annotate_interval()
-
+    pyplot.legend(loc = "upper left", title = "VM")
     pyplot.savefig(run + "_sustainable_throughput.pdf", bbox_inches='tight')
     pyplot.show()
 printTable(result_df)

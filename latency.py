@@ -62,14 +62,14 @@ end_check = latency[latency.note == " check"][" record.timestamp"].iloc[-1]
 duration_check = (end_check - start_check).seconds
 
 # rolling avg:
-latency["rollingAVG"] = latency[" latency"].rolling(window=6).mean()
+#latency["rollingAVG"] = latency[" latency"].rolling(window=6).mean()
 
 # grid figure with own graph for each partition
 grid = sns.FacetGrid(data=latency, col=' partition', col_wrap=3)
 grid.map(sns.lineplot, ' record.timestamp', ' latency')
 for axis in grid.axes:
     axis.xaxis.set_major_formatter(date_fmt)
-    #axis.legend(loc=5)
+    axis.legend(loc=5)
     axis.set_xticks([start_check, start_benchmark, fault_end, fault_end + timedelta(minutes=0.5)])
     axis.set_xticklabels(["t_0", "t_1   t_2", "t_3", ""])
     axis.axvline(x=fault_begin, color='r', linestyle=':')
@@ -126,12 +126,12 @@ annotate()
 pyplot.savefig('outputs/' + run + "/" + run + "_latency.pdf")
 
 # seperate rollling AVG plot
-fig, axes = pyplot.subplots( figsize = ( 10, 5))
-sns.lineplot(x =" record.timestamp", y="rollingAVG", data= latency, label = "Average")
-axes.set_xticks([start_check, start_benchmark, fault_end, fault_end + timedelta(minutes=0.5)])
-axes.set_xticklabels(["t_0", "t_1   t_2", "t_3", ""])
-annotate()
-pyplot.savefig('outputs/' + run + "/" + run + "_latency_rolling.pdf")
+# fig, axes = pyplot.subplots( figsize = ( 10, 5))
+# sns.lineplot(x =" record.timestamp", y="rollingAVG", data= latency, label = "Average")
+# axes.set_xticks([start_check, start_benchmark, fault_end, fault_end + timedelta(minutes=0.5)])
+# axes.set_xticklabels(["t_0", "t_1   t_2", "t_3", ""])
+# annotate()
+# pyplot.savefig('outputs/' + run + "/" + run + "_latency_rolling.pdf")
 
 #average latency over partitions: 
 #TODO:
@@ -142,6 +142,7 @@ fig, axes = pyplot.subplots( figsize = ( 10, 5))
 sns.lineplot(x =" record.timestamp", y="latencylocal", data=avg_latency)
 axes.set_xticks([start_check, start_benchmark, fault_end, fault_end + timedelta(minutes=0.5)])
 axes.set_xticklabels(["t_0", "t_1   t_2", "t_3", ""])
+axes.set_ylabel("event-time latency")
 annotate()
 pyplot.savefig('outputs/' + run + "/" + run + "_latency_average.pdf")
 
