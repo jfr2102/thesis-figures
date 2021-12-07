@@ -68,7 +68,11 @@ def set_ticks(ax, x_ticks, tick_labels):
 
 
 def printTable(df):
-    print(df.groupby("interval").mean().round(2))
+    #print(df.groupby("interval").mean().round(2))
+    for row in df.groupby("interval").mean().round(2).iterrows():
+        interval = row[0]
+        rowvalues = row[1]
+        print(int(interval), int(rowvalues.msg_count), int(rowvalues.sleep_short) , int(rowvalues.sleep_factor), rowvalues.avg_latency, rowvalues.avg_throughput, sep = " & ")
 
 def renameNotes(note):
     if len(note) == 18:
@@ -211,5 +215,5 @@ for run in runs:
     annotate_interval()
     pyplot.legend(loc = "upper left", title = "VM")
     pyplot.savefig(run + "_sustainable_throughput.pdf", bbox_inches='tight')
-    pyplot.show()
+    # pyplot.show()
 printTable(result_df)

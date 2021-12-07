@@ -1,4 +1,4 @@
 
-run = "2021-11-18_12-41-57_delay_50"
+run_legacy = "2021-12-06_04-20-19_delay_200"
 path="/home/jfr/Thesis/kafka-logs/"
-#runs = ["2021-11-16_22-40-40_delay_50", "2021-11-16_22-40-40_delay_50"]
+runs = ["2021-12-06_17-29-39_delay_10"]
