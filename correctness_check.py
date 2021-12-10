@@ -61,10 +61,6 @@ def equalRecordValue(df):
             return False
     return True
 
-def testFun():
-    return True
-    return False
-
 for run in runs:
 
     try:
@@ -81,4 +77,3 @@ for run in runs:
     "\nEqual message count per window:", equalMessagePerWindow(df),
     "\nEqual message count per city per window:", equalRecordValue(df),
     file = out)
-    print(testFun())
