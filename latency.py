@@ -13,6 +13,13 @@ import os
 import matplotlib.ticker as mtick
 
 
+def rounded_percent(a, b):
+    if a == b:
+        return 0
+    else:
+        return round((((b - a) / a) * 100), 2)
+
+
 def annotate(ax=None):
     if ax is None:
         ax = pyplot
@@ -79,12 +86,12 @@ for run in runs:
     latency[' record.timestamp'] = latency[' record.timestamp'].apply(
         lambda ts: pd.to_datetime(ts, unit='ms').to_pydatetime())
     latency[' latency'] = latency['latencylocal']
-
+    #print(fault_begin)
     print("#Events: ", latency[" window_size"].sum())
-    check = (latency.groupby(["note"]).get_group(" check")).head(-12)
+    check = (latency.groupby(["note"]).get_group(" check")).head(-18)
     event_count_check = check[" window_size"].sum()
 
-    benchmark = (latency.groupby(["note"]).get_group(" benchmark")).head(-6)
+    benchmark = (latency.groupby(["note"]).get_group(" benchmark")).head(-12)
     event_count_benchmark = benchmark[" window_size"].sum()
 
     latency = check.append(benchmark)
@@ -101,7 +108,7 @@ for run in runs:
     grid.map(sns.lineplot, ' record.timestamp', ' latency')
     for axis in grid.axes:
         annotate(axis)
-        set_axis(axis)
+        set_axis(axis, "event-time latency [ms]")
     pyplot.savefig('outputs/' + run + "/" + run + "_split_latency.pdf")
 
     # average latency over partitions:
@@ -116,7 +123,7 @@ for run in runs:
     axes.set_xticks([start_check, start_benchmark, fault_end,
                     fault_end + timedelta(minutes=0.5)])
     axes.set_xticklabels(["t_0", "t_1   t_2", "t_3", ""])
-    axes.set_ylabel("event-time latency")
+    axes.set_ylabel("event-time latency [ms]")
     annotate()
     pyplot.savefig('outputs/' + run + "/" + run + "_latency_average.pdf")
 
@@ -153,7 +160,8 @@ for run in runs:
 
     pyplot.subplot(122)
     annotate()
-    cpu_util = cpu_util[(cpu_util.time > start_check) & (cpu_util.time < (fault_end + timedelta(seconds=30)))]
+    cpu_util = cpu_util[(cpu_util.time > start_check) & (
+        cpu_util.time < (fault_end + timedelta(seconds=30)))]
     ax = sns.lineplot(x="time", y="value_1", data=cpu_util, label="Storm 1")
     set_axis(ax, "CPU Utilization")
     sns.lineplot(x="time", y="value_2", data=cpu_util, label="Storm 2")
@@ -175,7 +183,7 @@ for run in runs:
         partition_check = partition[partition.note == " check"]
         partition_benchmark = partition[partition.note == " benchmark"]
         print(partition_num, round(partition_check.mean()["latencylocal"], 2), round(partition_benchmark.mean()["latencylocal"], 2), partition_check.max()["latencylocal"], partition_benchmark.max()[
-              "latencylocal"], partition_check.min()["latencylocal"], partition_benchmark.min()["latencylocal"], partition_check.median()["latencylocal"], partition_benchmark.median()["latencylocal"], sep="&", end="", flush=True)
+              "latencylocal"], partition_check.min()["latencylocal"], partition_benchmark.min()["latencylocal"], partition_check.median()["latencylocal"], partition_benchmark.median()["latencylocal"], sep=" & ", end="", flush=True)
         print("\\\\ \\hline")
         #sns.lineplot(x=" record.timestamp", y=" latency", data = partition, label = "partition " + partition_num, legend=False)
         # marker="o"
@@ -188,10 +196,35 @@ for run in runs:
     # annotate()
     # pyplot.savefig('outputs/' + run + "/" + run + "_latency.pdf")
 
-    print("Total", round(latency.groupby(["note"])[" latency"].mean()[" check"], 2), round(latency.groupby(["note"])[" latency"].mean()[" benchmark"], 2), round(latency.groupby(["note"])[" latency"].max()[" check"], 2), round(latency.groupby(["note"])[" latency"].max()[" benchmark"], 2), round(
-        latency.groupby(["note"])[" latency"].min()[" check"], 2), round(latency.groupby(["note"])[" latency"].min()[" benchmark"], 2), round(latency.groupby(["note"])[" latency"].median()[" check"], 2), round(latency.groupby(["note"])[" latency"].median()[" benchmark"], 2), sep="&", end="", flush=True)
+    latency_by_note = latency.groupby(["note"])[" latency"]
+
+    latency_check_mean = round(latency_by_note.mean()[" check"], 2)
+    latency_benchmark_mean = round(latency_by_note.mean()[" benchmark"], 2)
+    latency_check_max = round(latency_by_note.max()[" check"], 2)
+    latency_benchmark_max = round(latency_by_note.max()[" benchmark"], 2)
+    latency_check_min = round(latency_by_note.min()[" check"], 2)
+    latency_benchmark_min = round(latency_by_note.min()[" benchmark"], 2)
+    latency_check_median = round(latency_by_note.median()[" check"], 2)
+    latency_benchmark_median = round(latency_by_note.median()[" benchmark"], 2)
+
+    print("Total", latency_check_mean, latency_benchmark_mean, latency_check_max, latency_benchmark_max, latency_check_min,
+          latency_benchmark_min, latency_check_median, latency_benchmark_median, sep=" & ", end="", flush=True)
     print("\\\\ \\hline")
 
+    print("Aggregation:")
+    latency_delta_mean = rounded_percent(
+        latency_check_mean, latency_benchmark_mean)
+    latency_delta_max = rounded_percent(
+        latency_check_max, latency_benchmark_max)
+    latency_delta_min = rounded_percent(
+        latency_check_min, latency_benchmark_min)
+    latency_delta_median = rounded_percent(
+        latency_check_median, latency_benchmark_median)
+
+    print("& $Run_$", latency_check_mean, latency_benchmark_mean, latency_delta_mean, latency_check_max, latency_benchmark_max, latency_delta_max, latency_check_min,
+          latency_benchmark_min, latency_delta_min, latency_check_median, latency_benchmark_median, latency_delta_median, sep=" & ", end="", flush=True)
+
+    print("\\\\")
     # TP Berechungen
     i = 0
     throughput_check = throughput[(throughput.time > start_check) & (
@@ -221,3 +254,9 @@ for run in runs:
     calc_throughput_benchmark = event_count_benchmark / duration_benchmark
     print("Calculted total throughputs: \ncheck: ", calc_throughput_check, "benchmark: ", calc_throughput_benchmark,
           "Diff: ", round(((calc_throughput_benchmark - calc_throughput_check) / calc_throughput_check) * 100, 2), "%")
+try:
+    os.mkdir(group)
+except:
+    pass
+for run in runs:
+    os.system("cp -r outputs/" + run + "/ " + group)
