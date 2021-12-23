@@ -28,9 +28,11 @@ def annotate(ax=None):
     ax.axvline(x=start_benchmark, color="g", linestyle="-")
 
 
-def set_axis(ax, ylabel=None):
+def set_axis(ax, ylabel=None, xlabel=None):
     if ylabel is not None:
         ax.set_ylabel(ylabel)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel)
     ax.get_xaxis().set_major_formatter(date_fmt)
     ax.set_xticks([start_check, start_benchmark, fault_end,
                   fault_end + timedelta(minutes=0.5)])
@@ -108,7 +110,7 @@ for run in runs:
     grid.map(sns.lineplot, ' record.timestamp', ' latency')
     for axis in grid.axes:
         annotate(axis)
-        set_axis(axis, "event-time latency [ms]")
+        set_axis(axis, "event-time latency [ms]", "time")
     pyplot.savefig('outputs/' + run + "/" + run + "_split_latency.pdf")
 
     # average latency over partitions:
@@ -124,6 +126,7 @@ for run in runs:
                     fault_end + timedelta(minutes=0.5)])
     axes.set_xticklabels(["t_0", "t_1   t_2", "t_3", ""])
     axes.set_ylabel("event-time latency [ms]")
+    axes.set_xlabel("time")
     annotate()
     pyplot.savefig('outputs/' + run + "/" + run + "_latency_average.pdf")
 
